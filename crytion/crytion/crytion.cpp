@@ -7,17 +7,16 @@
 #define MAXLEN 1024
 
 //异或混淆
-char* encrypt(char* source, char* pass)
+char* encrypt(char* source, int pass)
 {
 	int source_length = strlen(source);
-	int pass_length = strlen(pass);
 
 	char* tmp_str = (char*)malloc((source_length + 1) * sizeof(char));
 	memset(tmp_str, 0, source_length + 1);
 
 	for (int i = 0; i < source_length; ++i)
 	{
-		tmp_str[i] = source[i]^pass[i%pass_length];
+		tmp_str[i] = source[i]^pass;
 		if (tmp_str[i] == 0)              // 要考虑到XOR等于0的情况，如果等于0，就相当
 		{                                // 于字符串就提前结束了， 这是不可以的。
 			tmp_str[i] = source[i];      // 因此tmp_str[i]等于0的时候，保持原文不变
@@ -68,11 +67,10 @@ int main(int argc, char* argv[])
 		printf("usage: %s %s/n", argv[0], "infile outfile");
 		exit(1);
 	}
+	int key = 16;
 	if (argc >= 4){
 		type = atoi(argv[3]);
 	}
-
-	char* keys = "netease.com";
 	FILE * outfile, *infile;
 	outfile = fopen(argv[2], "wb");
 	infile = fopen(argv[1], "rb");
@@ -84,26 +82,26 @@ int main(int argc, char* argv[])
 		exit(1);
 	}
 
-	//int rc;
-	//while ((rc = fread(buf, 1, MAXLEN, infile)) != 0)
-	//{
-	//	char tmp[MAXLEN];
-	//	if (type > 0){
-	//		strcpy(tmp,encrypt(buf, keys));
-	//	}
-	//	else{
-	//		strcpy(tmp, encrypt1(buf));
-	//	}
-	//	fwrite(tmp, 1, rc, outfile);
-	//}
-	int count;
-	while (!feof(infile))
+	int rc;
+	while ((rc = fread(buf, 1, MAXLEN, infile)) != 0)
 	{
-		count = fread(buf, 1, 1024, infile);
-		for (int i = 0; i <count; i++)
-			buf[i] = ~buf[i];
-		fwrite(buf, 1, count, outfile);
+		char tmp[MAXLEN];
+		if (type > 0){
+			strcpy(tmp,encrypt(buf, key));
+		}
+		else{
+			strcpy(tmp, encrypt1(buf));
+		}
+		fwrite(tmp, 1, rc, outfile);
 	}
+	//int count;
+	//while (!feof(infile))
+	//{
+	//	count = fread(buf, 1, 1024, infile);
+	//	for (int i = 0; i <count; i++)
+	//		buf[i] = ~buf[i];
+	//	fwrite(buf, 1, count, outfile);
+	//}
 	fclose(infile);
 	fclose(outfile);
 	//system("PAUSE");
